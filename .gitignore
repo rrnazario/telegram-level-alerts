@@ -1,0 +1,7 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/TelegramLevelAlerts.API/obj
+/.vs
+/TelegramLevelAlerts.API/bin/Debug/net5.0
