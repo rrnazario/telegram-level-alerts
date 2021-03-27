@@ -21,5 +21,7 @@ namespace TelegramLevelAlerts.API.Services
         internal async Task UpdateAsync(string id, Alert alert) => await _alertData.UpdateAsync(id, alert);
 
         internal async Task<IEnumerable<Alert>> GetAllAlertsAsync() => await _alertData.GetAllAlertsAsync();
+
+        internal IEnumerable<Alert> GetAlertsToNotify() => _alertData.GetAlertsToNotify();
     }
 }

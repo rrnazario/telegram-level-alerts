@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TelegramLevelAlerts.API.Models;
 
@@ -32,6 +33,11 @@ namespace TelegramLevelAlerts.API.Data
             alerts.Add(alert);
 
             return Task.CompletedTask;
+        }
+
+        internal IEnumerable<Alert> GetAlertsToNotify()
+        {
+            return alerts.Where(w => w.LastAlertedTime <= DateTime.Now);
         }
 
         internal Task<IEnumerable<Alert>> GetAllAlertsAsync()

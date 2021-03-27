@@ -2,6 +2,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Telegram.Bot;
+using TelegramLevelAlerts.API.Models;
 
 namespace TelegramLevelAlerts.API.Services
 {
@@ -9,6 +11,14 @@ namespace TelegramLevelAlerts.API.Services
     {
         private readonly CancellationTokenSource cts = new();
         private Task _executingTask;
+        private readonly ConfigurationSettings _configurationSettings;
+        private readonly AlertService _alertService;
+
+        public MonitoringService(ConfigurationSettings configurationSettings, AlertService alertService)
+        {
+            _configurationSettings = configurationSettings;
+            _alertService = alertService;
+        }
 
         public void Dispose()
         {
@@ -43,9 +53,19 @@ namespace TelegramLevelAlerts.API.Services
 
         private async Task ExecuteAsync(CancellationToken token)
         {
+            var bot = new TelegramBotClient(_configurationSettings.TelegramBotToken);
+
             while (!token.IsCancellationRequested)
             {
-                
+                //Get all messages
+                var messagesToNotify = _alertService.GetAlertsToNotify();
+
+                Parallel.ForEach(messagesToNotify,
+                    new ParallelOptions { MaxDegreeOfParallelism = 1 },
+                    message =>
+                    {
+
+                    });
                 
                 await Task.Delay(TimeSpan.FromSeconds(10), token);
             }
