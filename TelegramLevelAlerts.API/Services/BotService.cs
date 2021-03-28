@@ -56,7 +56,10 @@ namespace TelegramLevelAlerts.API.Services
                     var groupConfigInfo = channelPost.Split(" ");
 
                     if (groupConfigInfo.Length < 3)
-                        throw new ArgumentException("Unrecognized format");
+                    {
+                        _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel could not be configured. The data format is invalid.");
+                        return;
+                    }
 
                     var alertId = groupConfigInfo[1];
                     var levelSeverity = int.Parse(groupConfigInfo[2]);
@@ -69,11 +72,16 @@ namespace TelegramLevelAlerts.API.Services
                     var level = alert.Levels.FirstOrDefault(f => f.Severity == levelSeverity);
 
                     if (level == null)
-                        throw new KeyNotFoundException("Alert level not found.");
+                    {
+                        _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel could not be configured. Alert level not found.");
+                        return;
+                    }
 
                     level.Id = e.Update.Message.Chat.Id.ToString();
 
                     _alertService.UpdateAsync(alertId, alert).GetAwaiter().GetResult();
+
+                    _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"Channel well configured as level {level.Severity} of alert {alertId}.");
                 }
             }
             catch { }
