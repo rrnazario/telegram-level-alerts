@@ -5,3 +5,5 @@
 /TelegramLevelAlerts.API/obj
 /.vs
 /TelegramLevelAlerts.API/bin/Debug/net5.0
+/TelegramLevelAlerts.Tests/bin/Debug/net5.0
+/TelegramLevelAlerts.Tests/obj

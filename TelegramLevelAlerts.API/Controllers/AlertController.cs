@@ -23,18 +23,33 @@ namespace TelegramLevelAlerts.API.Controllers
             return Ok(all);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(string id)
+        {
+            var alert = await _alertService.GetById(id);
+            return Ok(alert);
+        }
+
         [HttpPost]
         public async Task<IActionResult> Add([FromBody]Alert alert)
         {
-            await _alertService.RegisterAlertAsync(alert);
+            var newId = await _alertService.RegisterAlertAsync(alert);
 
-            return Ok();
+            return Ok(newId);
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] Alert alert)
         {
             await _alertService.UpdateAsync(id, alert);
+
+            return Ok();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Stop(string id)
+        {
+            await _alertService.StopAsync(id);
 
             return Ok();
         }

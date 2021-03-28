@@ -10,16 +10,19 @@ namespace TelegramLevelAlerts.API.Data
     {
         public static List<Alert> alerts = new();
 
-        internal Task InsertAlertAsync(Alert alert)
+        internal Task<Guid> InsertAlertAsync(Alert alert)
         {
             var foundAlert = alerts.Find(f => f.Id == alert.Id);
 
-            if (foundAlert != null)
-                throw new ArgumentException("Alerta já inserido.");
+            if (alert.Id != default && foundAlert != null)
+                throw new ArgumentException("Alert already inserted.");
+
+            if (alert.Id == default)
+                alert.Id = Guid.NewGuid();
 
             alerts.Add(alert);
 
-            return Task.CompletedTask;
+            return Task.FromResult(alert.Id);
         }
 
         internal Task UpdateAsync(string id, Alert alert)
@@ -27,18 +30,38 @@ namespace TelegramLevelAlerts.API.Data
             var foundAlert = alerts.Find(f => f.Id.ToString() == id);
 
             if (foundAlert == null)
-                throw new ArgumentNullException("Alerta não inserido.");
+                throw new KeyNotFoundException("Alert not found.");
 
-            alerts.Remove(foundAlert);
-            alerts.Add(alert);
+            UpdateEntity(foundAlert, alert);
 
             return Task.CompletedTask;
         }
 
-        internal IEnumerable<Alert> GetAlertsToNotify()
+        internal async Task<Alert> GetById(string id) => await Task.FromResult(alerts.Find(f => f.Id.ToString() == id));
+
+        private void UpdateEntity(Alert beforeAlert, Alert nowAlert)
         {
-            return alerts.Where(w => w.LastAlertedTime <= DateTime.Now);
+            alerts.Remove(beforeAlert);
+            alerts.Add(nowAlert);
         }
+
+        internal Task StopAsync(string id)
+        {
+            var foundAlert = alerts.Find(f => f.Id.ToString() == id);
+
+            if (foundAlert == null)
+                throw new KeyNotFoundException("Alert not found.");
+
+            var newAlert = new Alert(foundAlert);
+
+            newAlert.Alerting = false;
+
+            UpdateEntity(foundAlert, newAlert);
+
+            return Task.CompletedTask;
+        }
+
+        internal IEnumerable<Alert> GetAlertsToNotify() => alerts.Where(w => w.Alerting);
 
         internal Task<IEnumerable<Alert>> GetAllAlertsAsync()
         {

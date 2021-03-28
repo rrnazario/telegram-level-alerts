@@ -25,8 +25,9 @@ namespace TelegramLevelAlerts.API
             services.AddControllers();
 
             services.AddHostedService<MonitoringService>();
-            services.AddSingleton<AlertService>();
+            services.AddHostedService<BotService>();
 
+            services.AddSingleton<AlertService>();
             services.AddSingleton<AlertData>();
             
             var confSettings = new ConfigurationSettings();

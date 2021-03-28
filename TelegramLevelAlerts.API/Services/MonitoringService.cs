@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Telegram.Bot;
@@ -29,8 +30,8 @@ namespace TelegramLevelAlerts.API.Services
         {
             _executingTask = ExecuteAsync(cts.Token);
 
-            if (_executingTask.IsCompleted)            
-                return _executingTask;            
+            if (_executingTask.IsCompleted)
+                return _executingTask;
 
             return Task.CompletedTask;
         }
@@ -40,7 +41,7 @@ namespace TelegramLevelAlerts.API.Services
             // Stop called without start
             if (_executingTask == null)
                 return;
-            
+
             try
             {
                 cts.Cancel();
@@ -60,13 +61,11 @@ namespace TelegramLevelAlerts.API.Services
                 //Get all messages
                 var messagesToNotify = _alertService.GetAlertsToNotify();
 
-                Parallel.ForEach(messagesToNotify,
-                    new ParallelOptions { MaxDegreeOfParallelism = 1 },
-                    message =>
-                    {
+                if (messagesToNotify.Any())
+                    Parallel.ForEach(messagesToNotify,
+                        new ParallelOptions { MaxDegreeOfParallelism = 1 },
+                        message => message.Notify(bot));
 
-                    });
-                
                 await Task.Delay(TimeSpan.FromSeconds(10), token);
             }
         }
