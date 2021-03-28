@@ -63,10 +63,16 @@ namespace TelegramLevelAlerts.API.Models
 
                 if (!notified) break;
                 
-                if (level.AlertedCount < TimesPerLevel)
+                if (level.AlertedCount <= TimesPerLevel)
                 {
                     currentSeverity = level.Severity;
                     break;
+                }
+                else
+                {
+                    var index = Levels.IndexOf(level);
+                    if (index < Levels.Count() - 1)
+                        currentSeverity = Levels[index + 1].Severity;
                 }
             }
         }
