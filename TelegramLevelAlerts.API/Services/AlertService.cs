@@ -16,7 +16,15 @@ namespace TelegramLevelAlerts.API.Services
             _alertData = alertData;
         }
 
-        internal async Task<Guid> RegisterAlertAsync(Alert alert) => await _alertData.InsertAlertAsync(alert);
+        internal async Task<Guid> RegisterAlertAsync(Alert alert)
+        {
+            var foundAlert = await GetById(alert.Id.ToString());
+
+            if (alert.Id != default && foundAlert != null)
+                throw new ArgumentException("Alert already inserted.");            
+
+            return await _alertData.InsertAlertAsync(alert);
+        }
 
         internal async Task UpdateAsync(string id, Alert alert) => await _alertData.UpdateAsync(id, alert);
 
@@ -26,6 +34,15 @@ namespace TelegramLevelAlerts.API.Services
 
         internal async Task<Alert> GetById(string id) => await _alertData.GetById(id);
 
-        internal async Task StopAsync(string id) => await _alertData.StopAsync(id);
+        internal async Task ChangeStatusAsync(string id, bool status)
+        {
+            var alert = await _alertData.GetById(id);
+
+            if (alert == null)
+                throw new KeyNotFoundException("The alert does not exists.");
+
+            alert.Alerting = status;
+            await _alertData.UpdateAsync(id, alert);
+        }
     }
 }

@@ -49,7 +49,15 @@ namespace TelegramLevelAlerts.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Stop(string id)
         {
-            await _alertService.StopAsync(id);
+            await _alertService.ChangeStatusAsync(id, false);
+
+            return Ok();
+        }
+
+        [HttpPut("{id}/Activate")]
+        public async Task<IActionResult> Activate(string id)
+        {
+            await _alertService.ChangeStatusAsync(id, true);
 
             return Ok();
         }

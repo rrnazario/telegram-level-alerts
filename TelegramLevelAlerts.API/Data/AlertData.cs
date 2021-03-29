@@ -12,11 +12,6 @@ namespace TelegramLevelAlerts.API.Data
 
         internal Task<Guid> InsertAlertAsync(Alert alert)
         {
-            var foundAlert = alerts.Find(f => f.Id == alert.Id);
-
-            if (alert.Id != default && foundAlert != null)
-                throw new ArgumentException("Alert already inserted.");
-
             if (alert.Id == default)
                 alert.Id = Guid.NewGuid();
 
@@ -25,17 +20,7 @@ namespace TelegramLevelAlerts.API.Data
             return Task.FromResult(alert.Id);
         }
 
-        internal Task UpdateAsync(string id, Alert alert)
-        {
-            var foundAlert = alerts.Find(f => f.Id.ToString() == id);
-
-            if (foundAlert == null)
-                throw new KeyNotFoundException("Alert not found.");
-
-            UpdateEntity(foundAlert, alert);
-
-            return Task.CompletedTask;
-        }
+        internal async Task UpdateAsync(string id, Alert alert) => await UpdateEntity(id, alert);
 
         internal async Task<Alert> GetById(string id) => await Task.FromResult(alerts.Find(f => f.Id.ToString() == id));
 
@@ -45,20 +30,10 @@ namespace TelegramLevelAlerts.API.Data
             alerts.Add(nowAlert);
         }
 
-        internal Task StopAsync(string id)
+        private async Task UpdateEntity(string id, Alert nowAlert)
         {
-            var foundAlert = alerts.Find(f => f.Id.ToString() == id);
-
-            if (foundAlert == null)
-                throw new KeyNotFoundException("Alert not found.");
-
-            var newAlert = new Alert(foundAlert);
-
-            newAlert.Alerting = false;
-
-            UpdateEntity(foundAlert, newAlert);
-
-            return Task.CompletedTask;
+            var foundAlert = await GetById(id);
+            UpdateEntity(foundAlert, nowAlert);
         }
 
         internal IEnumerable<Alert> GetAlertsToNotify() => alerts.Where(w => w.Alerting);
