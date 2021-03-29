@@ -50,41 +50,58 @@ namespace TelegramLevelAlerts.API.Services
             {
                 var channelPost = e.Update.Message.Text;
 
-                if (channelPost.StartsWith("/channel", StringComparison.InvariantCulture)) //Add chanel
+                if (channelPost.StartsWith("/channel", StringComparison.InvariantCulture))
                 {
-                    // /channel ALERT_ID CHANNEL_INDEX: /channel 000-000-00000-000 0
-                    var groupConfigInfo = channelPost.Split(" ");
+                    RegisterAlert(e);
+                    return;
+                }
 
-                    if (groupConfigInfo.Length < 3)
-                    {
-                        _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel could not be configured. The data format is invalid.");
-                        return;
-                    }
-
-                    var alertId = groupConfigInfo[1];
-                    var levelSeverity = int.Parse(groupConfigInfo[2]);
-
-                    var alert = _alertService.GetById(alertId).GetAwaiter().GetResult();
-
-                    if (alert == null)
-                        throw new KeyNotFoundException("Alert not found");
-
-                    var level = alert.Levels.FirstOrDefault(f => f.Severity == levelSeverity);
-
-                    if (level == null)
-                    {
-                        _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel could not be configured. Alert level not found.");
-                        return;
-                    }
-
-                    level.Id = e.Update.Message.Chat.Id.ToString();
-
-                    _alertService.UpdateAsync(alertId, alert).GetAwaiter().GetResult();
-
-                    _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"Channel well configured as level {level.Severity} of alert {alertId}.");
+                if (channelPost.StartsWith("/id", StringComparison.InvariantCulture))
+                {
+                    ShowChannelId(e);
+                    return;
                 }
             }
             catch { }
+        }
+
+        private void ShowChannelId(UpdateEventArgs e)
+        {
+            _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel Id is: {e.Update.Message.Chat.Id}");
+        }
+
+        private void RegisterAlert(UpdateEventArgs e)
+        {
+            // /channel ALERT_ID CHANNEL_INDEX: /channel 000-000-00000-000 0
+            var groupConfigInfo = e.Update.Message.Text.Split(" ");
+
+            if (groupConfigInfo.Length < 3)
+            {
+                _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel could not be configured. The data format is invalid.");
+                return;
+            }
+
+            var alertId = groupConfigInfo[1];
+            var levelSeverity = int.Parse(groupConfigInfo[2]);
+
+            var alert = _alertService.GetById(alertId).GetAwaiter().GetResult();
+
+            if (alert == null)
+                throw new KeyNotFoundException("Alert not found");
+
+            var level = alert.Levels.FirstOrDefault(f => f.Severity == levelSeverity);
+
+            if (level == null)
+            {
+                _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"The channel could not be configured. Alert level not found.");
+                return;
+            }
+
+            level.Id = e.Update.Message.Chat.Id.ToString();
+
+            _alertService.UpdateAsync(alertId, alert).GetAwaiter().GetResult();
+
+            _bot.SendTextMessageAsync(e.Update.Message.Chat.Id, $"Channel well configured as level {level.Severity} of alert {alertId}.");
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
